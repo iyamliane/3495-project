@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Admin - Users</title>
+    <style>
+      body{font-family:Inter,system-ui,Arial;background:#ffffff;color:#111827;margin:0;padding:28px}
+      .wrap{max-width:800px;margin:0 auto}
+      h1{margin:0 0 8px}
+      .list{margin-top:12px}
+      .user{padding:8px;border:1px solid rgba(0,0,0,0.06);border-radius:8px;margin-bottom:8px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Registered Users</h1>
+      <p class="small">Admin-only list of registered usernames.</p>
+      <div id="list" class="list">Loading...</div>
+      <p style="margin-top:16px"><a href="/" class="btn">Back</a></p>
+    </div>
+    <script>
+      async function loadUsers(){
+        const token = localStorage.getItem('access_token');
+        if(!token){ document.getElementById('list').textContent = 'Not authorized (login required)'; return }
+        try{
+          const res = await fetch('http://localhost:5000/users', { headers: { Authorization: 'Bearer '+token } });
+          if(!res.ok){ document.getElementById('list').textContent = 'Failed to load users: '+res.status; return }
+          const data = await res.json();
+          const list = document.getElementById('list');
+          list.innerHTML = '';
+          data.users.forEach(u=>{ const el = document.createElement('div'); el.className='user'; el.textContent = u; list.appendChild(el) });
+        }catch(e){ document.getElementById('list').textContent = 'Error: '+e.message }
+      }
+      loadUsers();
+    </script>
+  </body>
+</html>

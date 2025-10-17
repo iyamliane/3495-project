@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  auth_service:
+    build: ./auth_service
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./.env
+
+  upload_service:
+    build: ./upload_service
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth_service
+      - mysql
+      - file_system_service
+    volumes:
+      - ./videos:/videos
+    env_file:
+      - ./.env
+
+  streaming_service:
+    build: ./streaming_service
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    depends_on:
+      - auth_service
+      - mysql
+      - file_system_service
+    volumes:
+      - ./videos:/videos
+    env_file:
+      - ./.env
+
+  file_system_service:
+    build: ./file_system_service
+    restart: unless-stopped
+    volumes:
+      - ./videos:/videos
+    ports:
+      - "5003:5003"
+
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: videos_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+volumes:
+  mysql_data:

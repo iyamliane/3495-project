@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Upload Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+  :root{--bg:#ffffff;--card:#ffffff;--muted:#6b7280;--accent:#111827;--primary:#0f1724;--brand:#dc2626;--success:#16a34a}
+      *{box-sizing:border-box}
+      body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0;background:var(--bg);color:var(--primary);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px}
+      .card{width:100%;max-width:880px;background:var(--card);border-radius:12px;padding:28px;display:grid;grid-template-columns:1fr 320px;gap:20px;box-shadow:0 8px 36px rgba(11,18,32,0.06);border:1px solid rgba(11,18,32,0.04)}
+      .left{padding:6px}
+      .title{font-size:18px;font-weight:700;margin:0 0 6px}
+      .desc{color:var(--muted);margin:0 0 12px;font-size:13px}
+      .drop{border:1px dashed rgba(11,18,32,0.06);border-radius:10px;padding:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transition:all .12s;background:transparent}
+      .drop.dragover{background:rgba(37,99,235,0.03);transform:translateY(-2px);border-color:rgba(37,99,235,0.28)}
+      .drop input{display:none}
+  .btn{background:var(--brand);border:none;color:white;padding:9px 12px;border-radius:9px;font-weight:600;cursor:pointer}
+      .btn.ghost{background:transparent;border:1px solid rgba(11,18,32,0.06);color:var(--primary)}
+      .meta{display:flex;gap:8px;align-items:center;margin-top:8px;color:var(--muted);font-size:13px}
+      .right{padding:18px;border-radius:10px}
+      .login-row{display:flex;gap:8px;align-items:center;justify-content:space-between}
+      .small{font-size:13px;color:var(--muted)}
+  .progress{height:6px;background:rgba(0,0,0,0.05);border-radius:999px;overflow:hidden;margin-top:12px}
+  .progress > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),#b91c1c);width:0%}
+      .status{margin-top:12px;font-size:14px}
+      footer{margin-top:16px;color:var(--muted);font-size:13px}
+      @media(max-width:880px){.card{grid-template-columns:1fr;}.right{order:-1}}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="left">
+        <h2 class="title">Upload your video</h2>
+        <p class="desc">Quickly upload a video. Use the drag & drop area or pick a file. After uploading, visit the streaming page to view the file.</p>
+
+        <div id="drop" class="drop" aria-label="File drop area">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 3v10" stroke="#b91c1c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 6l3-3 3 3" stroke="#b91c1c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="#b91c1c" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div style="text-align:center;max-width:420px">
+            <div style="font-weight:700;font-size:15px;color:var(--primary)">Drop file to upload</div>
+            <div class="small" style="margin-top:6px">or click to browse your device</div>
+            <label class="btn" for="fileInput" style="margin-top:12px;cursor:pointer;display:inline-block;background:var(--brand)">Choose file</label>
+            <input id="fileInput" type="file" accept="video/*" />
+          </div>
+          <div class="meta"><span id="fileName">No file chosen</span><span style="flex:1"></span><span id="fileSize" class="small"></span></div>
+        </div>
+
+        <div class="progress" aria-hidden><i id="progressBar"></i></div>
+        <div class="status" id="status"></div>
+  <footer>Tip: Use small sample files when testing locally.</footer>
+      </div>
+
+      <div class="right">
+        <div class="login-row">
+          <div>
+            <div class="small">Account</div>
+            <div id="loggedInStatus">Not logged in</div>
+          </div>
+          <div>
+            <button id="loginBtn" class="btn" style="background:var(--brand)">Login</button>
+            <button id="logoutBtn" class="btn ghost" style="display:none;border-color:rgba(185,28,28,0.12);color:var(--brand)">Logout</button>
+            <a id="adminLink" href="/admin" class="btn ghost" style="display:none;text-decoration:none;color:var(--brand);margin-left:8px">Admin</a>
+          </div>
+        </div>
+
+        <div style="margin-top:14px">
+          <div class="small">Username</div>
+          <input id="usernameField" type="text" placeholder="Optional (overrides login)" style="width:100%;margin-top:8px;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.06);background:transparent;color:var(--primary)" />
+        </div>
+
+        <div style="margin-top:18px;display:flex;gap:8px">
+          <button id="uploadBtn" class="btn" style="background:var(--brand)">Upload</button>
+          <a href="/videos" class="btn ghost" style="text-decoration:none;color:var(--brand);display:inline-flex;align-items:center;border-color:rgba(185,28,28,0.08)">Browse</a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const drop = document.getElementById('drop');
+      const fileInput = document.getElementById('fileInput');
+      const fileName = document.getElementById('fileName');
+      const fileSize = document.getElementById('fileSize');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const status = document.getElementById('status');
+      const progressBar = document.getElementById('progressBar');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const loggedInStatus = document.getElementById('loggedInStatus');
+      const usernameField = document.getElementById('usernameField');
+
+      let selectedFile = null;
+
+      function fmtBytes(n){if(!n) return ''; const u=['B','KB','MB','GB']; let i=0; while(n>=1024&&i<u.length-1){n/=1024;i++} return n.toFixed(1)+' '+u[i]}
+
+      function setPicked(file){selectedFile=file; if(file){fileName.textContent=file.name; fileSize.textContent=fmtBytes(file.size)} else {fileName.textContent='No file chosen'; fileSize.textContent=''}}
+
+      drop.addEventListener('dragover', (e)=>{e.preventDefault();drop.classList.add('dragover')});
+      drop.addEventListener('dragleave', ()=>drop.classList.remove('dragover'));
+      drop.addEventListener('drop', (e)=>{e.preventDefault();drop.classList.remove('dragover');const f=e.dataTransfer.files[0]; if(f) {fileInput.files = e.dataTransfer.files; setPicked(f);}});
+      fileInput.addEventListener('change', ()=>{setPicked(fileInput.files[0])});
+
+      loginBtn.addEventListener('click', async ()=>{
+        const username = prompt('Username:'); if(!username) return; const password = prompt('Password:'); if(password===null) return;
+        try{
+          const res = await fetch('http://localhost:5000/login',{method:'POST',headers: {'Content-Type':'application/json'},body: JSON.stringify({username,password})});
+          if(!res.ok){alert('Login failed'); return}
+          const data = await res.json();
+          // store username and access token
+          localStorage.setItem('username', username);
+          localStorage.setItem('access_token', data.access_token);
+          updateLoginState();
+          alert('Logged in');
+        }catch(e){alert('Login error: '+e.message)}
+      });
+
+  logoutBtn.addEventListener('click', ()=>{localStorage.removeItem('username'); localStorage.removeItem('access_token'); updateLoginState();});
+
+  function updateLoginState(){const u=localStorage.getItem('username'); if(u){loggedInStatus.textContent='Logged in as '+u; loginBtn.style.display='none'; logoutBtn.style.display='inline-block'; usernameField.value=''; adminLink.style.display = (u === 'admin') ? 'inline-block' : 'none'; } else {loggedInStatus.textContent='Not logged in'; loginBtn.style.display='inline-block'; logoutBtn.style.display='none'; adminLink.style.display='none';}}
+      updateLoginState();
+
+      uploadBtn.addEventListener('click', async ()=>{
+        const f = selectedFile || (fileInput.files && fileInput.files[0]); if(!f) return alert('Pick a file first');
+        const fd = new FormData();
+        const uname = localStorage.getItem('username') || usernameField.value || 'anonymous';
+        fd.append('username', uname);
+        fd.append('video', f);
+
+        status.textContent = 'Uploading...'; progressBar.style.width='0%'; progressBar.parentElement.style.display='block';
+
+        try{
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST','/upload');
+          // attach token if present
+          const token = localStorage.getItem('access_token');
+          if(token) xhr.setRequestHeader('Authorization','Bearer '+token);
+          xhr.upload.onprogress = (ev)=>{ if(ev.lengthComputable){ const pct=Math.round((ev.loaded/ev.total)*100); progressBar.style.width=pct+'%'; }};
+          xhr.onload = ()=>{ if(xhr.status===200){ status.style.color='var(--success)'; status.textContent='Upload successful'; } else { status.style.color='#f97316'; status.textContent='Upload failed: '+xhr.statusText } };
+          xhr.onerror = ()=>{ status.style.color='#f97316'; status.textContent='Upload failed (network)'; };
+          xhr.send(fd);
+        }catch(e){ status.textContent='Error: '+e.message }
+      });
+    </script>
+  </body>
+</html>
